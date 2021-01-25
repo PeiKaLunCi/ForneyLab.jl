@@ -65,7 +65,7 @@ ruleVBGaussianMeanPrecisionOut( dist_out::Any,
 ruleSVBGaussianMeanPrecisionOutVGD(dist_out::Any,
                                    msg_mean::Message{F, V},
                                    dist_prec::ProbabilityDistribution) where{F<:Gaussian, V<:VariateType} = 
-    Message(V, GaussianMeanVariance, m=unsafeMean(msg_mean.dist), v=unsafeCov(msg_mean.dist) + cholinv(unsafeMean(dist_prec)))
+    Message(V, GaussianMeanVariance, m=unsafeMean(msg_mean.dist), v=unsafeCov(msg_mean.dist) + cholinv(unsafeMean(dist_prec), Regularized))
 
 function ruleSVBGaussianMeanPrecisionW(
     dist_out_mean::ProbabilityDistribution{Multivariate, F},
@@ -78,7 +78,7 @@ function ruleSVBGaussianMeanPrecisionW(
         return Message(Univariate, Gamma, a=1.5, b=0.5*(V[1,1] - V[1,2] - V[2,1] + V[2,2] + (m[1] - m[2])^2))
     else
         d = Int64(joint_dims/2)
-        return Message(MatrixVariate, Wishart, v=cholinv( V[1:d,1:d] - V[1:d,d+1:end] - V[d+1:end, 1:d] + V[d+1:end,d+1:end] + (m[1:d] - m[d+1:end])*(m[1:d] - m[d+1:end])' ), nu=d + 2.0) 
+        return Message(MatrixVariate, Wishart, v=cholinv( V[1:d,1:d] - V[1:d,d+1:end] - V[d+1:end, 1:d] + V[d+1:end,d+1:end] + (m[1:d] - m[d+1:end])*(m[1:d] - m[d+1:end])', Regularized ), nu=d + 2.0) 
     end
 end
 

@@ -6,7 +6,7 @@ const huge = 1e12
 const tiny = 1e-12
 
 # Forces cholesky argument to positive definite; replace with "Nothing" for cholesky to error on non-pd argument
-const default_cholesky_mode = Positive
+#const default_cholesky_mode = Positive
 
 """Cast input to a `Matrix` if necessary"""
 ensureMatrix(arr::AbstractMatrix{T}) where T<:Number = arr
@@ -30,12 +30,12 @@ end
 
 struct Regularized end
 
-cholesky(::Type{Nothing}, M::AbstractMatrix) = cholesky(Hermitian(Matrix(M))) # No strategy for enforcing PD-ness of M
+#cholesky(::Type{Nothing}, M::AbstractMatrix) = cholesky(Hermitian(Matrix(M))) # No strategy for enforcing PD-ness of M
 
 """
 Matrix inversion using Cholesky decomposition
 """
-cholinv(M::AbstractMatrix) = inv(cholesky(default_cholesky_mode, M))
+cholinv(M::AbstractMatrix) = cholinv(M, Regularized)#inv(cholesky(default_cholesky_mode, M))
 cholinv(m::Number) = 1.0/m
 cholinv(D::Diagonal) = Diagonal(1 ./ D.diag)
 
@@ -59,6 +59,9 @@ function cholinv(M::AbstractMatrix, ::Type{Regularized})
         end
     end
 end
+
+cholinv(m::Number, ::Type{Regularized}) = 1.0/m
+cholinv(D::Diagonal, ::Type{Regularized}) = Diagonal(1 ./ D.diag)
 
 eye(n::Number) = Diagonal(I,n)
 diageye(dims::Int64) = Diagonal(ones(dims))

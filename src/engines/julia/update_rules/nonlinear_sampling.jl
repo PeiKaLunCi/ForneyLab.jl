@@ -87,18 +87,18 @@ function msgSPNonlinearSInGX(g::Function,
     # Extract joint statistics of inbound messages
     (ms_fw_in, Vs_fw_in) = collectStatistics(msgs_in...) # Return arrays with individual means and covariances
     (m_fw_in, V_fw_in, ds) = concatenateGaussianMV(ms_fw_in, Vs_fw_in) # Concatenate individual statistics into joint statistics
-    W_fw_in = cholinv(V_fw_in) # Convert to canonical statistics
+    W_fw_in = cholinv(V_fw_in, Regularized) # Convert to canonical statistics
 
     # Construct joint log-pdf function and gradient
     (log_joint, d_log_joint) = logJointPdfs(variate, m_fw_in, W_fw_in, msg_out.dist, g, ds) # Overloaded on VariateType V
 
     # Compute joint belief on in's by gradient ascent
     m_in = gradientOptimization(log_joint, d_log_joint, m_fw_in, 0.01)
-    V_in = cholinv(-ForwardDiff.jacobian(d_log_joint, m_in))
+    V_in = cholinv(-ForwardDiff.jacobian(d_log_joint, m_in), Regularized)
 
     # Marginalize joint belief on in's
     (m_inx, V_inx) = marginalizeGaussianMV(variate, m_in, V_in, ds, inx) # Marginalization is overloaded on VariateType V
-    W_inx = cholinv(V_inx) # Convert to canonical statistics
+    W_inx = cholinv(V_inx, Regularized) # Convert to canonical statistics
     xi_inx = W_inx*m_inx
 
     # Divide marginal on inx by forward message
@@ -208,7 +208,7 @@ function ruleMNonlinearSInGX(g::Function,
     # Extract joint statistics of inbound messages
     (ms_fw_in, Vs_fw_in) = collectStatistics(msgs_in...) # Return arrays with individual means and covariances
     (m_fw_in, V_fw_in, ds) = concatenateGaussianMV(ms_fw_in, Vs_fw_in) # Concatenate individual statistics into joint statistics
-    W_fw_in = cholinv(V_fw_in) # Convert to canonical statistics
+    W_fw_in = cholinv(V_fw_in, Regularized) # Convert to canonical statistics
 
     # Construct log-pdf function and gradient
     (log_joint, d_log_joint) = logJointPdfs(Multivariate, m_fw_in, W_fw_in, msg_out.dist, g, ds) # Overloaded on VariateType V
