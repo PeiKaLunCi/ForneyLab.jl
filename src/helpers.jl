@@ -1,4 +1,4 @@
-export huge, tiny, cholinv, diageye, eye, format, *, ^, mat, step!, init, Regularized
+export huge, tiny, cholinv, diageye, eye, format, *, ^, mat, step!, init
 
 # Constants to define smallest/largest supported numbers.
 # Used for clipping quantities to ensure numerical stability.
@@ -28,26 +28,17 @@ function labsbeta(x::Number, y::Number)
     return logabsbeta(x, y)[1]
 end
 
-struct Regularized end
-
-#cholesky(::Type{Nothing}, M::AbstractMatrix) = cholesky(Hermitian(Matrix(M))) # No strategy for enforcing PD-ness of M
-
-"""
-Matrix inversion using Cholesky decomposition
-"""
-cholinv(M::AbstractMatrix) = cholinv(M, Regularized)#inv(cholesky(default_cholesky_mode, M))
-cholinv(m::Number) = 1.0/m
-cholinv(D::Diagonal) = Diagonal(1 ./ D.diag)
-
 """
 Matrix inversion using Cholesky decomposition,
 attempts with added regularization (1e-8*I) on failure.
 """
-function cholinv(M::AbstractMatrix, ::Type{Regularized})
+function cholinv(M::AbstractMatrix)
     try
+        println("cholinv")
         return inv(cholesky(Hermitian(Matrix(M))))
     catch
         try
+            println("cholinv reg")
             return inv(cholesky(Hermitian(Matrix(M) + 1e-8*I)))
         catch exception
             if isa(exception, PosDefException)
@@ -60,8 +51,15 @@ function cholinv(M::AbstractMatrix, ::Type{Regularized})
     end
 end
 
-cholinv(m::Number, ::Type{Regularized}) = 1.0/m
-cholinv(D::Diagonal, ::Type{Regularized}) = Diagonal(1 ./ D.diag)
+function cholinv(m::Number) 
+    println("cholinv number")
+    1.0/m
+end
+
+function cholinv(D::Diagonal) 
+    println("cholinv diag")
+    Diagonal(1 ./ D.diag)
+end
 
 eye(n::Number) = Diagonal(I,n)
 diageye(dims::Int64) = Diagonal(ones(dims))
